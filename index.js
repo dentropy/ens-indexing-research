@@ -3,15 +3,15 @@ import util from "util";
 import fs from 'fs';
 
 async function main(){
-    var saving_dir = "./results"
+    var saving_dir = "./results4"
     if (!fs.existsSync(saving_dir)){
         fs.mkdirSync(saving_dir);
     }
     let last_created_at = 1;
-    for (var i = 0; i < 100; i += 1){
+    for (var i = 0; i < 10; i += 1){
         const query = `
         {
-            domains(first: 1000, where: {createdAt_gt: "${last_created_at}"}) {
+            domains(first: 1000, where: {createdAt_gt: "${last_created_at}"}, order: {field: createdAt, direction: ASC}) {
               id
               createdAt
               name
@@ -57,6 +57,7 @@ async function main(){
           body: JSON.stringify({ query }),
         })
         const result = await fetchResult.json()
+        console.log(result)
         // console.log(util.inspect(result, {showHidden: false, depth: null, colors: true}))
         let newest_created_at = result.data.domains[result.data.domains.length - 1]["createdAt"]
         let saving_path = (saving_dir + `/ens-domains-${String(last_created_at).padStart(10, '0')}-${String(newest_created_at).padStart(10, '0')}.json`)
