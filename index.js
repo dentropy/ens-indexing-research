@@ -7,11 +7,13 @@ async function main(){
     if (!fs.existsSync(saving_dir)){
         fs.mkdirSync(saving_dir);
     }
-    for (var skip = 512*50; skip < 512*100; skip += 512){
+    let last_created_at = 1;
+    for (var i = 0; i < 100; i += 1){
         const query = `
         {
-            domains(first: 100, skip: ${skip}) {
+            domains(first: 1000, where: {createdAt_gt: "${last_created_at}"}) {
               id
+              createdAt
               name
               labelName
               labelhash,
@@ -55,9 +57,11 @@ async function main(){
           body: JSON.stringify({ query }),
         })
         const result = await fetchResult.json()
-        let saving_path = (saving_dir + `/ens-domains-${String(skip-512).padStart(10, '0')}-${String(skip).padStart(10, '0')}.json`)
-        fs.writeFileSync(saving_path, JSON.stringify(result));
         // console.log(util.inspect(result, {showHidden: false, depth: null, colors: true}))
+        let newest_created_at = result.data.domains[result.data.domains.length - 1]["createdAt"]
+        let saving_path = (saving_dir + `/ens-domains-${String(last_created_at).padStart(10, '0')}-${String(newest_created_at).padStart(10, '0')}.json`)
+        last_created_at = newest_created_at
+        fs.writeFileSync(saving_path, JSON.stringify(result.data.domains));
         console.log("Saved " + saving_path)
     }
 }
